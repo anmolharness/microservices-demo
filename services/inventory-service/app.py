@@ -33,7 +33,7 @@ def health():
 
 @app.route('/metrics')
 def metrics():
-    return generate_latest(REGISTRY)
+    return generate_latest(REGISTRY), 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 @app.route('/inventory', methods=['GET'])
 def get_inventory():
