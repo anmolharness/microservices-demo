@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.inventoryService.name }}
+  labels:
+    app: {{ .Values.inventoryService.name }}
+spec:
+  replicas: {{ .Values.inventoryService.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.inventoryService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.inventoryService.name }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.inventoryService.port }}"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: {{ .Values.inventoryService.name }}
+        image: "{{ .Values.global.imageRegistry }}{{ .Values.inventoryService.image }}:{{ .Values.global.imageTag }}"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: {{ .Values.inventoryService.port }}
+          name: http
+        resources:
+          {{- toYaml .Values.inventoryService.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.inventoryService.port }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.inventoryService.port }}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.inventoryService.name }}
+  labels:
+    app: {{ .Values.inventoryService.name }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "{{ .Values.inventoryService.port }}"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.inventoryService.port }}
+    targetPort: {{ .Values.inventoryService.port }}
+    protocol: TCP
+    name: http
+  selector:
+    app: {{ .Values.inventoryService.name }}

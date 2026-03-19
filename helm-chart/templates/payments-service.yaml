@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.paymentsService.name }}
+  labels:
+    app: {{ .Values.paymentsService.name }}
+spec:
+  replicas: {{ .Values.paymentsService.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.paymentsService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.paymentsService.name }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.paymentsService.port }}"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: {{ .Values.paymentsService.name }}
+        image: "{{ .Values.global.imageRegistry }}{{ .Values.paymentsService.image }}:{{ .Values.global.imageTag }}"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: {{ .Values.paymentsService.port }}
+          name: http
+        resources:
+          {{- toYaml .Values.paymentsService.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.paymentsService.port }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.paymentsService.port }}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.paymentsService.name }}
+  labels:
+    app: {{ .Values.paymentsService.name }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "{{ .Values.paymentsService.port }}"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.paymentsService.port }}
+    targetPort: {{ .Values.paymentsService.port }}
+    protocol: TCP
+    name: http
+  selector:
+    app: {{ .Values.paymentsService.name }}
