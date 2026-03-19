@@ -101,6 +101,7 @@ spec:
         - name: collector-gateway-config
           mountPath: /conf
       volumes:
+      {{- if eq .Values.opentelemetryCollector.projectId "PROJECT_ID" }}
       # Simple ConfigMap volume with template file
       - name: collector-gateway-config-template
         configMap:
@@ -111,6 +112,12 @@ spec:
       # Create a volume to store the expanded template (with correct cloud project ID)
       - name: collector-gateway-config
         emptyDir: {}
+      {{- else }}
+      # Mount config directly from ConfigMap (no init container needed)
+      - name: collector-gateway-config
+        configMap:
+          name: collector-gateway-config
+      {{- end }}
 ---
 apiVersion: v1
 kind: Service
@@ -139,12 +146,13 @@ spec:
     app: {{ .Values.opentelemetryCollector.name }}
   type: ClusterIP
 ---
+{{- if eq .Values.opentelemetryCollector.projectId "PROJECT_ID" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: collector-gateway-config-template
   namespace: {{ .Release.Namespace }}
-# Open Telemetry Collector config
+# Open Telemetry Collector config template (PROJECT_ID will be substituted by init container)
 # https://opentelemetry.io/docs/collector/configuration/
 data:
   collector-gateway-config-template.yaml: |
@@ -152,6 +160,56 @@ data:
       otlp:
         protocols:
           grpc:
+            endpoint: 0.0.0.0:4317
+    processors:
+      batch:
+    exporters:
+      {{- if .Values.googleCloudOperations.metrics }}
+      googlecloud:
+        project: "PROJECT_ID"
+      {{- end }}
+      {{- if .Values.opentelemetryCollector.prometheus.enabled }}
+      prometheus:
+        endpoint: "0.0.0.0:{{ .Values.opentelemetryCollector.prometheus.port }}"
+      {{- end }}
+      debug:
+        verbosity: detailed
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp] # Receive otlp-formatted data from other collector instances
+          processors: [batch]
+          {{- if .Values.googleCloudOperations.tracing }}
+          exporters: [googlecloud] # Export traces directly to Google Cloud
+          {{- else }}
+          exporters: [debug] # Export traces to logs
+          {{- end }}
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          {{- if .Values.opentelemetryCollector.prometheus.enabled }}
+          exporters: [prometheus{{- if .Values.googleCloudOperations.metrics }}, googlecloud{{- end }}] # Export metrics to Prometheus (and optionally Google Cloud)
+          {{- else if .Values.googleCloudOperations.metrics }}
+          exporters: [googlecloud] # Export metrics to Google Cloud
+          {{- else }}
+          exporters: [debug] # Export metrics to logs
+          {{- end }}
+{{- else }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: collector-gateway-config
+  namespace: {{ .Release.Namespace }}
+# Open Telemetry Collector config (direct, no template substitution needed)
+# https://opentelemetry.io/docs/collector/configuration/
+data:
+  collector-gateway-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
     processors:
       batch:
     exporters:
@@ -163,8 +221,8 @@ data:
       prometheus:
         endpoint: "0.0.0.0:{{ .Values.opentelemetryCollector.prometheus.port }}"
       {{- end }}
-      logging:
-        loglevel: info
+      debug:
+        verbosity: detailed
     service:
       pipelines:
         traces:
@@ -173,7 +231,7 @@ data:
           {{- if .Values.googleCloudOperations.tracing }}
           exporters: [googlecloud] # Export traces directly to Google Cloud
           {{- else }}
-          exporters: [logging] # Export traces to logs
+          exporters: [debug] # Export traces to logs
           {{- end }}
         metrics:
           receivers: [otlp]
@@ -183,8 +241,9 @@ data:
           {{- else if .Values.googleCloudOperations.metrics }}
           exporters: [googlecloud] # Export metrics to Google Cloud
           {{- else }}
-          exporters: [logging] # Export metrics to logs
+          exporters: [debug] # Export metrics to logs
           {{- end }}
+{{- end }}
 {{- if .Values.networkPolicies.create }}
 ---
 apiVersion: networking.k8s.io/v1

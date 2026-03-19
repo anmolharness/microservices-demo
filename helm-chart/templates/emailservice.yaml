@@ -81,7 +81,7 @@ spec:
         - name: OTEL_SERVICE_NAME
           value: "{{ .Values.emailService.name }}"
         {{- end }}
-        {{- if .Values.googleCloudOperations.tracing }}
+        {{- if or .Values.googleCloudOperations.tracing .Values.opentelemetryCollector.prometheus.enabled }}
         - name: ENABLE_TRACING
           value: "1"
         {{- end }}

@@ -44,8 +44,9 @@ authorizationPolicies:
 opentelemetryCollector:
   create: true
   name: opentelemetrycollector
-  # Specifies the project id for the otel collector. If set as "PROJECT_ID" (default value), an initContainer will automatically retrieve the project id value from the metadata server.
-  projectId: "PROJECT_ID"
+  # Specifies the project id for the otel collector. If set as "PROJECT_ID", an initContainer will automatically retrieve the project id value from the metadata server.
+  # For local/non-GCP deployments, set to any string other than "PROJECT_ID" to skip the init container (e.g., "local-cluster")
+  projectId: "local-cluster"
   # Prometheus exporter configuration
   prometheus:
     enabled: true       # Enable Prometheus exporter endpoint
