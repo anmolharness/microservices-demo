@@ -51,10 +51,10 @@ def get_orders():
 def create_order():
     start_time = time.time()
     try:
-        # Simulate work and random failures
-        time.sleep(random.uniform(0.05, 0.2))
+        # Simulate work and random failures (faster in v1.2.0)
+        time.sleep(random.uniform(0.03, 0.15))
 
-        if random.random() < 0.05:  # 5% failure rate (improved from 10%)
+        if random.random() < 0.02:  # 2% failure rate (improved from 5%)
             ORDERS_FAILED.inc()
             REQUEST_COUNT.labels(method='POST', endpoint='/orders/create', status='500').inc()
             REQUEST_LATENCY.observe(time.time() - start_time)

@@ -24,14 +24,14 @@ def metrics():
 def process_payment():
     start_time = time.time()
     try:
-        # Simulate payment processing (faster in v1.1.0)
-        time.sleep(random.uniform(0.05, 0.2))
+        # Simulate payment processing (even faster in v1.2.0)
+        time.sleep(random.uniform(0.03, 0.15))
 
         amount = random.uniform(10, 500)
         PAYMENT_AMOUNT.observe(amount)
 
-        # Simulate 2% payment failure rate (improved from 5%)
-        if random.random() < 0.02:
+        # Simulate 1% payment failure rate (improved from 2%)
+        if random.random() < 0.01:
             PAYMENTS_FAILED.inc()
             REQUEST_COUNT.labels(method='POST', endpoint='/payments/process', status='402').inc()
             return jsonify({"error": "Payment declined"}), 402

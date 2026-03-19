@@ -11,6 +11,7 @@ REQUEST_DURATION = Histogram('http_request_duration_seconds', 'HTTP request dura
 INVENTORY_ITEMS = Gauge('inventory_items_count', 'Current inventory item count', ['item'])
 INVENTORY_CHECKS = Counter('inventory_checks_total', 'Total inventory checks')
 LOW_STOCK_ALERTS = Gauge('inventory_low_stock_alert', 'Low stock alert (1 if below threshold)', ['item'])
+INVENTORY_CACHE_HITS = Counter('inventory_cache_hits_total', 'Total cache hits (v1.2.0 feature)')
 
 # Initialize some inventory
 inventory = {
@@ -42,6 +43,10 @@ def get_inventory():
         time.sleep(random.uniform(0.01, 0.05))
 
         INVENTORY_CHECKS.inc()
+        # Simulate cache hit 80% of the time in v1.2.0
+        if random.random() < 0.8:
+            INVENTORY_CACHE_HITS.inc()
+
         REQUEST_COUNT.labels(method='GET', endpoint='/inventory', status='200').inc()
         REQUEST_DURATION.labels(method='GET', endpoint='/inventory').observe(time.time() - start_time)
 

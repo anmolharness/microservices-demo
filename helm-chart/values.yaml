@@ -1,6 +1,6 @@
 global:
   imageRegistry: "pkg.harness.io/9iw-060arf-7xlcnvrvjbq/microservice-demo/"
-  imageTag: "v1.1.1"
+  imageTag: "v1.2.0"
 
 ordersService:
   name: orders-service
