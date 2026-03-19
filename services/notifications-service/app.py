@@ -28,8 +28,8 @@ def send_notification():
 
         notification_type = random.choice(['email', 'sms', 'push'])
 
-        # Simulate 3% failure rate
-        if random.random() < 0.03:
+        # Simulate 1% failure rate (improved from 3%)
+        if random.random() < 0.01:
             NOTIFICATIONS_FAILED.labels(type=notification_type).inc()
             REQUEST_COUNT.labels(method='POST', endpoint='/notifications/send', status='500').inc()
             return jsonify({"error": "Notification delivery failed"}), 500

@@ -10,6 +10,7 @@ REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests', ['method',
 REQUEST_DURATION = Histogram('http_request_duration_seconds', 'HTTP request duration', ['method', 'endpoint'])
 INVENTORY_ITEMS = Gauge('inventory_items_count', 'Current inventory item count', ['item'])
 INVENTORY_CHECKS = Counter('inventory_checks_total', 'Total inventory checks')
+LOW_STOCK_ALERTS = Gauge('inventory_low_stock_alert', 'Low stock alert (1 if below threshold)', ['item'])
 
 # Initialize some inventory
 inventory = {
@@ -19,8 +20,12 @@ inventory = {
     "monitor": 75
 }
 
+LOW_STOCK_THRESHOLD = 100
+
 for item, count in inventory.items():
     INVENTORY_ITEMS.labels(item=item).set(count)
+    # Set low stock alert if below threshold
+    LOW_STOCK_ALERTS.labels(item=item).set(1 if count < LOW_STOCK_THRESHOLD else 0)
 
 @app.route('/health')
 def health():
