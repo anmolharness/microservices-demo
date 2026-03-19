@@ -1,21 +1,19 @@
-{{- if .Values.loadGenerator.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.loadGenerator.name }}
+  name: load-generator
+  namespace: app
   labels:
-    app: {{ .Values.loadGenerator.name }}
-  annotations:
-    harness.io/skip-versioning: "true"
+    app: load-generator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.loadGenerator.name }}
+      app: load-generator
   template:
     metadata:
       labels:
-        app: {{ .Values.loadGenerator.name }}
+        app: load-generator
     spec:
       containers:
       - name: load-generator
@@ -50,5 +48,9 @@ spec:
               sleep $(shuf -i 1-3 -n 1)
             done
         resources:
-          {{- toYaml .Values.loadGenerator.resources | nindent 10 }}
-{{- end }}
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
