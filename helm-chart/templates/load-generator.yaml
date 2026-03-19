@@ -5,6 +5,8 @@ metadata:
   name: {{ .Values.loadGenerator.name }}
   labels:
     app: {{ .Values.loadGenerator.name }}
+  annotations:
+    harness.io/skip-versioning: "true"
 spec:
   replicas: 1
   selector:
