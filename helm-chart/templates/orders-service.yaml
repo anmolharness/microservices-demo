@@ -18,6 +18,8 @@ spec:
         prometheus.io/port: "{{ .Values.ordersService.port }}"
         prometheus.io/path: "/metrics"
     spec:
+      imagePullSecrets:
+      - name: harness-registry
       containers:
       - name: {{ .Values.ordersService.name }}
         image: "{{ .Values.global.imageRegistry }}{{ .Values.ordersService.image }}:{{ .Values.global.imageTag }}"
