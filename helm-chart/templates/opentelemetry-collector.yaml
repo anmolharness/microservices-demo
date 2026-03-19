@@ -117,12 +117,24 @@ kind: Service
 metadata:
   name: {{ .Values.opentelemetryCollector.name }}
   namespace: {{ .Release.Namespace }}
+  {{- if .Values.opentelemetryCollector.prometheus.enabled }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: {{ .Values.opentelemetryCollector.prometheus.port | quote }}
+    prometheus.io/path: {{ .Values.opentelemetryCollector.prometheus.path | quote }}
+  {{- end }}
 spec:
   ports:
   - name: grpc-otlp
     port: 4317
     protocol: TCP
     targetPort: 4317
+  {{- if .Values.opentelemetryCollector.prometheus.enabled }}
+  - name: prometheus
+    port: {{ .Values.opentelemetryCollector.prometheus.port }}
+    protocol: TCP
+    targetPort: {{ .Values.opentelemetryCollector.prometheus.port }}
+  {{- end }}
   selector:
     app: {{ .Values.opentelemetryCollector.name }}
   type: ClusterIP
@@ -138,22 +150,41 @@ data:
   collector-gateway-config-template.yaml: |
     receivers:
       otlp:
-        protocols: 
+        protocols:
           grpc:
     processors:
+      batch:
     exporters:
+      {{- if .Values.googleCloudOperations.metrics }}
       googlecloud:
         project: {{ .Values.opentelemetryCollector.projectId | quote }}
+      {{- end }}
+      {{- if .Values.opentelemetryCollector.prometheus.enabled }}
+      prometheus:
+        endpoint: "0.0.0.0:{{ .Values.opentelemetryCollector.prometheus.port }}"
+      {{- end }}
+      logging:
+        loglevel: info
     service:
       pipelines:
         traces:
           receivers: [otlp] # Receive otlp-formatted data from other collector instances
-          processors: []
+          processors: [batch]
+          {{- if .Values.googleCloudOperations.tracing }}
           exporters: [googlecloud] # Export traces directly to Google Cloud
+          {{- else }}
+          exporters: [logging] # Export traces to logs
+          {{- end }}
         metrics:
           receivers: [otlp]
-          processors: []
+          processors: [batch]
+          {{- if .Values.opentelemetryCollector.prometheus.enabled }}
+          exporters: [prometheus{{- if .Values.googleCloudOperations.metrics }}, googlecloud{{- end }}] # Export metrics to Prometheus (and optionally Google Cloud)
+          {{- else if .Values.googleCloudOperations.metrics }}
           exporters: [googlecloud] # Export metrics to Google Cloud
+          {{- else }}
+          exporters: [logging] # Export metrics to logs
+          {{- end }}
 {{- if .Values.networkPolicies.create }}
 ---
 apiVersion: networking.k8s.io/v1
