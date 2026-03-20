@@ -1,0 +1,69 @@
+# Global values that can be shared across all subcharts
+global:
+  imageRegistry: pkg.harness.io/9iw-060arf-7xlcnvrvjbq/microservice-demo/
+  imageTag: "v1.2.0"
+  imagePullSecrets:
+    - name: harness-registry
+
+# Individual service configurations
+# Each service can be enabled/disabled and configured independently
+
+orders-service:
+  enabled: true
+  replicaCount: 2
+  image:
+    registry: pkg.harness.io/9iw-060arf-7xlcnvrvjbq/microservice-demo/
+    repository: orders-service
+    tag: "v1.2.0"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+inventory-service:
+  enabled: true
+  replicaCount: 2
+  image:
+    registry: pkg.harness.io/9iw-060arf-7xlcnvrvjbq/microservice-demo/
+    repository: inventory-service
+    tag: "v1.2.0"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+payments-service:
+  enabled: true
+  replicaCount: 2
+  image:
+    registry: pkg.harness.io/9iw-060arf-7xlcnvrvjbq/microservice-demo/
+    repository: payments-service
+    tag: "v1.2.0"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+notifications-service:
+  enabled: true
+  replicaCount: 2
+  image:
+    registry: pkg.harness.io/9iw-060arf-7xlcnvrvjbq/microservice-demo/
+    repository: notifications-service
+    tag: "v1.2.0"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi

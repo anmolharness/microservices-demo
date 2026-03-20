@@ -1,0 +1,34 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your microservices stack has been deployed!
+
+Services deployed:
+{{- if index .Values "orders-service" "enabled" }}
+  - orders-service
+{{- end }}
+{{- if index .Values "inventory-service" "enabled" }}
+  - inventory-service
+{{- end }}
+{{- if index .Values "payments-service" "enabled" }}
+  - payments-service
+{{- end }}
+{{- if index .Values "notifications-service" "enabled" }}
+  - notifications-service
+{{- end }}
+
+To access your services:
+
+  # Get all pods
+  kubectl get pods -n {{ .Release.Namespace }}
+
+  # Get all services
+  kubectl get svc -n {{ .Release.Namespace }}
+
+  # Port-forward to a service (example: orders-service)
+  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ .Release.Name }}-orders-service 8080:8080
+
+  # Check metrics
+  curl http://localhost:8080/metrics
+
+Prometheus monitoring is enabled on all services.
+Metrics are exposed at /metrics on port 8080.
