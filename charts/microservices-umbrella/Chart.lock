@@ -1,0 +1,15 @@
+dependencies:
+- name: orders-service
+  repository: file://../orders-service
+  version: 1.2.0
+- name: inventory-service
+  repository: file://../inventory-service
+  version: 1.2.0
+- name: payments-service
+  repository: file://../payments-service
+  version: 1.2.0
+- name: notifications-service
+  repository: file://../notifications-service
+  version: 1.2.0
+digest: sha256:1ba66dd09694a33c4a212b272d0efdafebf6f4e4a44f2e2e0c224ba1fa66d450
+generated: "2026-03-20T11:12:16.986515Z"
