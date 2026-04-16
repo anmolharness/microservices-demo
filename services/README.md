@@ -2,6 +2,12 @@
 
 This directory contains four microservices with comprehensive unit tests.
 
+## Requirements
+
+- **Python**: 3.8+ (services use Python 3.11)
+- **pytest**: 8.0+
+- **pytest-cov**: 5.0+
+
 ## Services
 
 1. **orders-service** - Handles order creation and retrieval
